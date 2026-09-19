@@ -35,8 +35,8 @@ you already keep the site in Git.
 ### Option 1 — Direct Upload (recommended, ~5 min)
 
 1. Go to **https://dash.cloudflare.com** and sign up / log in (free).
-2. Left sidebar → **Compute (Workers & Pages)** → **Create** → **Pages** tab →
-   **Upload assets**.
+2. Left sidebar → **Compute (Workers & Pages)** → **Create application** (blue button, top
+   right) → **Pages** tab → **Upload assets**.
 3. Project name: `vaizletech` (this becomes `vaizletech.pages.dev`).
 4. **Drag the *contents* of the `vaizletech-site` folder** into the upload box —
    i.e. drop `index.html`, `assets/`, `_headers`, etc. directly.
@@ -50,8 +50,10 @@ To publish an update later: same project → **Create new deployment** → drag 
 ### Option 2 — Git (if you want version control)
 
 1. Put the `vaizletech-site` contents in a GitHub repo (root of the repo = the site).
-2. Cloudflare → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** →
-   pick the repo.
+2. Cloudflare → **Compute (Workers & Pages)** → **Create application** → **Pages** tab →
+   **Connect to Git** → pick the repo. (The Pages tab only appears *after* you click
+   **Create application**; direct link:
+   `https://dash.cloudflare.com/?to=/:account/pages/new/provider/github`.)
 3. Build settings: **Framework preset = None**, **Build command = (leave empty)**,
    **Build output directory = `/`**. Deploy.
 4. Every `git push` now redeploys automatically.
@@ -70,13 +72,17 @@ GoDaddy but is more fiddly for the apex domain.
 You keep the domain **registered** at GoDaddy; only the DNS (nameservers) moves to Cloudflare.
 
 **Step 1 — Add the domain to Cloudflare**
-1. Cloudflare dashboard → **Add a site** (or **+ Add** → **Existing domain**).
-2. Enter `vaizletech.com`. Choose the **Free** plan.
-3. Cloudflare scans your current DNS and shows the records it found. Review them — make sure
-   anything you rely on is present, especially **email (MX) records** if you receive mail at
-   `@vaizletech.com`. Add any that are missing (see the note below).
-4. Cloudflare shows you **two nameservers**, e.g.
+1. Cloudflare dashboard → left sidebar **Domains** → **Onboard a domain**.
+   (Older dashboards call this **Add a site**.)
+2. Enter `vaizletech.com`, choose how to add DNS records (**Quick scan for DNS records** is the
+   right choice here) → **Continue**.
+3. Choose the **Free** plan → **Continue**.
+4. Cloudflare shows the records its scan found. Review them — make sure anything you rely on is
+   present, especially **email (MX) records** if you receive mail at `@vaizletech.com`. Add any
+   that are missing (see the note below), then **Continue**.
+5. Cloudflare shows you **two nameservers**, e.g.
    `adam.ns.cloudflare.com` and `zara.ns.cloudflare.com` (yours will differ). Copy both.
+   You can always find them again on the domain's **Overview** page.
 
 **Step 2 — Point GoDaddy at Cloudflare's nameservers**
 1. Log in to **GoDaddy** → **My Products** → find `vaizletech.com` → **DNS** (or the
@@ -85,18 +91,31 @@ You keep the domain **registered** at GoDaddy; only the DNS (nameservers) moves 
 3. Delete GoDaddy's nameservers and paste **Cloudflare's two** nameservers.
 4. **Save**. GoDaddy will warn you it may take time — that's normal. Propagation is usually
    under an hour but can take up to 24–48 h.
-5. Back in Cloudflare, click **Check nameservers**. When it flips to **Active**, DNS is live on
-   Cloudflare. (Cloudflare also emails you.)
+5. Back in Cloudflare, open the domain's **Overview** page and click **Check nameservers now**
+   if the button is offered. When the domain's status on the **Domains** page flips to
+   **Active**, DNS is live on Cloudflare. (Cloudflare also emails you.) Nothing else in this
+   guide will work until it says Active — wait for it rather than retrying.
 
-**Step 3 — Attach the domain to your Pages project**
-1. Cloudflare → **Workers & Pages** → your `vaizletech` project → **Custom domains** tab →
-   **Set up a custom domain**.
+**Step 3 — Attach the domain to your project**
+
+*If you created a **Pages** project:*
+1. Cloudflare → **Compute (Workers & Pages)** → your `vaizletech` project → **Custom domains**
+   tab → **Set up a domain** (this button used to read "Set up a custom domain").
 2. Enter `vaizletech.com` → **Continue** → **Activate domain**. Because DNS is now on
    Cloudflare, it creates the record and issues the SSL certificate automatically (usually a
    couple of minutes, occasionally up to ~15).
 3. Repeat and add `www.vaizletech.com` as well. The included `_redirects` file then bounces
    `www` → the apex, so both work and search engines see one canonical address.
-4. Visit **https://vaizletech.com** — you should see the site on HTTPS with a valid padlock.
+
+*If you created a **Worker** instead (the dashboard's "Import a repository" flow):*
+1. Cloudflare → **Compute (Workers & Pages)** → your Worker → **Settings** →
+   **Domains & Routes** → **Add** → **Custom Domain**.
+2. Enter `vaizletech.com` → **Add Custom Domain**. Cloudflare creates the DNS record and the
+   certificate for you.
+3. Repeat for `www.vaizletech.com`.
+
+Either way, finish by visiting **https://vaizletech.com** — you should see the site on HTTPS
+with a valid padlock.
 
 > **Email note:** Moving nameservers moves *all* DNS to Cloudflare. If you use Google Workspace,
 > Microsoft 365, GoDaddy email, or any mailbox at `@vaizletech.com`, re‑create those **MX**
@@ -108,7 +127,8 @@ You keep the domain **registered** at GoDaddy; only the DNS (nameservers) moves 
 
 Use this only if you can't move nameservers.
 
-1. In your Pages project → **Custom domains** → add **`www.vaizletech.com`**. Cloudflare will
+1. In your Pages project → **Custom domains** → **Set up a domain** → add
+   **`www.vaizletech.com`**. Cloudflare will
    show a target like `vaizletech.pages.dev` and ask you to create a CNAME.
 2. In **GoDaddy → Manage DNS**, add a record:
    - **Type:** CNAME **Name:** `www` **Value:** `vaizletech.pages.dev` **TTL:** 1 hour
@@ -128,7 +148,9 @@ Use this only if you can't move nameservers.
       link — click it once and the form works forever after. Send a test message yourself to
       trigger it.
 - [ ] **Force HTTPS.** Cloudflare → your domain → **SSL/TLS** → **Edge Certificates** → turn on
-      **Always Use HTTPS**. Set **SSL/TLS mode** to **Full** (not Flexible).
+      **Always Use HTTPS**. On the **SSL/TLS Overview** page, leave the encryption mode on
+      **Automatic SSL/TLS** (the current default) or set it to **Full (strict)** —
+      never **Flexible**, which would cause a redirect loop.
 - [ ] **Test on your phone** and on `www.` vs no‑`www` — both should land on
       `https://vaizletech.com`.
 - [ ] **Submit the sitemap** to Google: **Google Search Console** → add `vaizletech.com` →
