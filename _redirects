@@ -1,0 +1,2 @@
+# Redirect the www subdomain to the canonical apex domain
+https://www.vaizletech.com/* https://vaizletech.com/:splat 301
